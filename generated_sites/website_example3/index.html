@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ModernEcom | example3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-slate-200">
+        <div class="max-w-7-xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer" onclick="router.navigate('home')">
+                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-bolt text-white text-sm"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-slate-900">LUXE.</span>
+                </div>
+                
+                <div class="hidden md:flex space-x-8 text-sm font-medium">
+                    <button onclick="router.navigate('plp')" class="hover:text-indigo-600 transition">Shop All</button>
+                    <button class="hover:text-indigo-600 transition">New Arrivals</button>
+                    <button class="hover:text-indigo-600 transition">Collections</button>
+                </div>
+
+                <div class="flex items-center space-x-5">
+                    <div id="auth-buttons" class="hidden md:flex space-x-4 items-center border-r pr-5 border-slate-200">
+                        <!-- Dynamic Auth State -->
+                    </div>
+                    <button onclick="router.navigate('wishlist')" class="relative p-2 text-slate-600 hover:text-indigo-600 transition">
+                        <i class="far fa-heart text-xl"></i>
+                        <span id="wishlist-count" class="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center hidden">0</span>
+                    </button>
+                    <button onclick="router.navigate('cart')" class="relative p-2 text-slate-600 hover:text-indigo-600 transition">
+                        <i class="fas fa-shopping-bag text-xl"></i>
+                        <span id="cart-count" class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center hidden">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="app-root" class="pt-24 min-h-screen pb-20">
+        <!-- Dynamic Content Injected Here -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h4 class="font-bold mb-4">Shop</h4>
+                    <ul class="text-sm text-slate-500 space-y-2">
+                        <li>Women</li>
+                        <li>Men</li>
+                        <li>Accessories</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Support</h4>
+                    <ul class="text-sm text-slate-500 space-y-2">
+                        <li>Help Center</li>
+                        <li>Shipping</li>
+                        <li>Returns</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Company</h4>
+                    <ul class="text-sm text-slate-500 space-y-2">
+                        <li>About Us</li>
+                        <li>Sustainability</li>
+                        <li>Careers</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Newsletter</h4>
+                    <div class="flex">
+                        <input type="email" placeholder="Email" class="bg-slate-100 px-3 py-2 rounded-l-md w-full focus:outline-none">
+                        <button class="bg-indigo-600 text-white px-4 py-2 rounded-r-md">Join</button>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-slate-100 pt-8 flex justify-between items-center text-xs text-slate-400">
+                <p>© 2023 LUXE. example3 Application. All rights reserved.</p>
+                <div class="flex space-x-4">
+                    <i class="fab fa-instagram"></i>
+                    <i class="fab fa-twitter"></i>
+                    <i class="fab fa-facebook"></i>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Global Modal (Login/Register) -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/50 z-[100] hidden items-center justify-center backdrop-blur-sm">
+        <div id="modal-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative">
+            <!-- Dynamic Modal Content -->
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-[200] transform translate-y-20 opacity-0 transition-all duration-300">
+        <div class="bg-slate-900 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3">
+            <i id="toast-icon" class="fas fa-check-circle text-green-400"></i>
+            <span id="toast-message">Action successful!</span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
