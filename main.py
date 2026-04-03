@@ -51,7 +51,7 @@ def website_builder_ui(request: Request):
 def root():
     return {"message": "AI Website Builder Running"}
 
-generated_sites_path = os.path.join(os.path.dirname(__file__), "generated_sites")
+generated_sites_path = os.path.join(os.path.dirname(__file__), "sites")
 
 if os.path.exists(generated_sites_path):
     app.mount(

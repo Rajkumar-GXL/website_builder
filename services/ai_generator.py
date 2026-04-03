@@ -22,216 +22,192 @@ class WebsiteGenerator:
         self.model = genai.GenerativeModel("gemini-3-flash-preview")
 
     def clean_code(self, text):
-        return re.sub(r"```.*?\n|```", "", text, flags=re.DOTALL).strip()
+        text = re.sub(r"```(?:json|html|javascript|css)?\s*", "", text)
+        text = re.sub(r"```\s*", "", text)
+        return text.strip()
 
-    # Function to extract the json file.
     def extract_json(self, text):
         try:
-            match = re.search(r'\{.*\}', text, re.DOTALL)
-            if match:
-                return match.group(0)
-            return "{}"
-        except:
+            match = re.search(r'\{[\s\S]*\}', text)
+            if not match:
+                return "{}"
+            json_str = match.group(0)
+            # Fix trailing commas
+            json_str = re.sub(r',\s*}', '}', json_str)
+            json_str = re.sub(r',\s*]', ']', json_str)
+            return json_str
+        except Exception as e:
+            print(f"JSON extraction error: {e}")
             return "{}"
     
     # Function to generate website application.
     def generate_code(self, prompt: str) -> str:
-        for _ in range(2):
+        for attempt in range(2):
             try:
-                # Add higher temperature to increase creative variability (uniqueness)
                 response = self.model.generate_content(
                     prompt,
-                    generation_config={"temperature": 0.95, "top_p": 0.95}
+                    generation_config={
+                        "temperature": 0.85,      
+                        "top_p": 0.95,
+                        "response_mime_type": "application/json"
+                    }
                 )
-
-                if hasattr(response, "text") and response.text:
+                if response.text:
                     return self.clean_code(response.text)
-
                 if response.candidates:
                     parts = response.candidates[0].content.parts
-                    text = "".join([p.text for p in parts if hasattr(p, "text")])
+                    text = "".join(p.text for p in parts if hasattr(p, "text"))
                     return self.clean_code(text)
-
             except Exception as e:
-                print("Gemini Error:", str(e))
-
+                print(f"Gemini attempt {attempt+1} error: {e}")
         return ""
+
+    def save_website_files(self, files_dict, slug):
+        sites_dir = "sites"
+        os.makedirs(sites_dir, exist_ok=True)
+        site_dir = os.path.join(sites_dir, slug)
+        os.makedirs(site_dir, exist_ok=True)
+        saved = []
+        for filename, content in files_dict.items():
+            if content:
+                filepath = os.path.join(site_dir, filename)
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                saved.append(filepath)
+                print(f"Saved: {filepath}")
+        return saved
 
     # Function to generate the full Application
     def generate_full_application(self, slug, title, category):
         design_systems = [
             {
-                "style": "Glassmorphism (Frosted glass cards, neon accents, blurred backgrounds)",
-                "nav": "Centered top navigation bar with animated underline hover effects and logo in center",
-                "layout": "Bento Grid (Modular blocks of varying sizes for products)"
+                "style": "Clean Modern (soft shadows, rounded corners, white space)",
+                "nav": "Top sticky navbar with dropdown menus and search bar",
+                "layout": "Responsive product grid (3-4 columns on desktop)"
             },
             {
-                "style": "High-Contrast Brutalism (Heavy 4px black borders, bold primary colors, sharp edges)",
-                "nav": "Sticky top bar with hamburger menu that reveals a full-screen mega menu",
-                "layout": "Asymmetric split-screen (Fixed hero on left, scrolling products on right)"
+                "style": "Bold & Vibrant (high contrast, accent colors, playful but professional)",
+                "nav": "Left sidebar navigation with category accordion",
+                "layout": "Masonry grid for product discovery"
             },
             {
-                "style": "Modern Swiss Minimalism (Massive typography, 0.5pt thin lines, monochromatic)",
-                "nav": "Floating circular menu button (FAB) that expands into a radial navigation wheel",
-                "layout": "Horizontal scrolling product gallery (Side-scrolling on desktop)"
+                "style": "Minimal & Elegant (serif headings, light background, fine lines)",
+                "nav": "Centered top bar with hamburger menu on mobile",
+                "layout": "List view with large product images"
             },
             {
-                "style": "Neubrutalism (Bold colors, rough edges, quirky illustrations, playful vibe)",
-                "nav": "Top rail with segmented pill buttons that slide horizontally on scroll",
-                "layout": "Masonry grid with staggered card heights"
+                "style": "Corporate/Trustworthy (blue/grays, card-based, clear CTAs)",
+                "nav": "Traditional top bar with mega menu for categories",
+                "layout": "Grid with quick-view modal on hover"
             },
             {
-                "style": "Cyberpunk/Neon Noir (Dark mode with neon glows, scanlines, futuristic elements)",
-                "nav": "Bottom-anchored control panel that slides up/down with touch/mouse drag",
-                "layout": "Hexagonal grid product display with hover animations"
+                "style": "Lifestyle/Editorial (large imagery, magazine-style typography)",
+                "nav": "Floating action button that reveals quick links",
+                "layout": "Full-width hero + 3-column product showcase"
             },
             {
-                "style": "Organic/Biophilic Design (Curved shapes, nature colors, flowing gradients)",
-                "nav": "Radial menu that blooms from a leaf-shaped button in corner",
-                "layout": "Waterfall layout with organic card shapes (non-rectangular)"
-            },
-            {
-                "style": "Retro/Vaporwave (Synthwave gradients, chrome effects, 80s aesthetic)",
-                "nav": "Arcade-style top bar with pixelated icons and CRT scanline effect",
-                "layout": "Grid with perspective tilt (3D-like product showcase)"
-            },
-            {
-                "style": "Minimalist/Whitespace Heavy (Breathing room, fine details, elegant typography)",
-                "nav": "Progressive disclosure - nav appears only on scroll-up, hides on scroll-down",
-                "layout": "Single column with parallax scrolling sections"
-            },
-            {
-                "style": "Abstract/Experimental (Broken grid, overlapping elements, asymmetry)",
-                "nav": "Anchored to mouse cursor, follows pointer with delay, collapses on click",
-                "layout": "Collage-style overlapping cards with rotation transforms"
-            },
-            {
-                "style": "Luxury/Opulent (Gold accents, rich textures, serif typography, slow animations)",
-                "nav": "Left-aligned vertical marquee that scrolls menu items continuously",
-                "layout": "Grid with featured product taking 2x size spotlight"
+                "style": "Dark Mode E‑commerce (dark background, neon accents, high readability)",
+                "nav": "Bottom navigation bar (mobile-first) + top search",
+                "layout": "Card-based grid with add-to-cart buttons"
             }
         ]
         
         hero_styles = [
-            "Full-screen cinematic hero with large parallax overlapping text",
-            "Split-screen design: sticky left text, scrolling right collage of images",
-            "3D interactive placeholder centered with bold, elegant typography",
-            "Typographic hero using massive structural text without traditional photos",
-            "Grid-based hero: staggered masonry cards that reveal on load"
+            "Full-width hero with headline, CTA, and background product image",
+            "Split hero: left side text + email signup, right side carousel",
+            "Centered hero with animated text and shop now button",
+            "Minimal hero: large brand statement + simple illustration",
+            "Video background hero with overlay text and CTA"
         ]
         
         typography_styles = [
-            "Grotesque Sans-serif headers (impactful) + Humanist Sans-serif body (readable)",
-            "High-contrast elegant Serif (luxury) + geometric Sans-serif body",
-            "Monospace retro-computer type + clean sans-serif for regular text",
-            "Chunky Y2K aesthetic typefaces with outline effects + simple sans-serif",
-            "Ultra-thin minimalist Sans-serif with extremely large Tracking/Letter-spacing"
+            "Sans-serif headings (Inter) + Sans-serif body (system-ui)",
+            "Serif headings (Playfair Display) + Sans-serif body (Roboto)",
+            "Modern geometric (Poppins) for both headings and body",
+            "Slab serif (Roboto Slab) for headings + Open Sans for body"
         ]
 
         interaction_styles = [
-            "Magnetic buttons, custom cursor trails, fluid spring hover states",
-            "Parallax scrolling image reveals and staggered text entry animations",
-            "Brutalist marquee scrolling text, harsh flashing hovers, inverted colors",
-            "Soft glassmorphism fade-ins, gentle floating elements, layered blur effects",
-            "Page transitions with circular SVG masks and morphing containers"
+            "Subtle hover scale on product cards, fade-in animations",
+            "Slide-up effects on scroll, smooth page transitions",
+            "Button ripple effects, loading skeletons",
+            "Hover underline for links, zoom on product images"
         ]
 
         design = random.choice(design_systems)
         hero = random.choice(hero_styles)
         typography = random.choice(typography_styles)
         interaction = random.choice(interaction_styles)
+
+        color_directions = [
+            "Neutral & Minimal (warm off-white, soft gray, charcoal, subtle beige, pure white) – clean and elegant",
+            "Professional Blue (navy, slate, steel blue, light blue, white) – trustworthy, corporate",
+            "Forest & Sage (deep green, sage, cream, warm gray, dark charcoal) – natural, sustainable brands",
+            "Warm Terracotta (clay, sand, cream, rust, warm brown) – artisan, handmade, cozy",
+            "Cool Gray & Indigo (indigo, cool gray, light gray, white, soft blue) – tech, modern, sleek",
+            "Luxury Monochrome (black, off-black, dark charcoal, champagne, ivory) – high‑end fashion",
+            "Soft Pastel Commerce (dusty rose, pale mint, lavender, cream, light gray) – beauty, wellness",
+            "Deep Ocean (teal, navy, aqua, white, light gray) – travel, electronics, reliability",
+            "Earthy Olive (olive green, tan, off-white, dark brown, warm gray) – outdoor, organic",
+            "Clean White & Slate (white, slate, light gray, dark gray, subtle blue accent) – SaaS, modern retail"
+        ]
+        chosen_color_direction = random.choice(color_directions)
+
         
         prompt = f"""
-        Act as a Senior Creative Developer. Build a HIGH-END, PRODUCTION-READY Ecommerce Frontend for:
-        - BRAND: {title}
-        - DOMAIN: {category}
-        - SLUG: {slug}
-
-        --- MANDATORY DESIGN SYSTEM ---
-        1. THEME: {design['style']}
-        2. NAVIGATION: {design['nav']}
-        3. GRID: {design['layout']}
-        4. HERO SECTION: {hero}
-        5. TYPOGRAPHY: {typography}
-        6. MICRO-INTERACTIONS: {interaction}
-        7. COLOR PALETTE: Generate a completely UNIQUE 5-color palette (Primary, Secondary, Surface, Accent, Text) avoiding generic colors.
+        Build a COMPLETE, WORKING e-commerce website. Use the following exact specifications.        
         
-        --- MANDATORY FRONTEND LOGIC (script.js) ---
-        1. API BASE: `const API_BASE = '/api/{slug}';`
-        2. STATE: Use a global `state = {{ products: [], cart: [], view: 'home' }}`.
-        3. RE-RENDERING: Every time state changes, call a `render()` function that updates the UI without page reload.
-        4. DYNAMIC FEATURES:
-           - On page load, fetch `${{API_BASE}}/products`.
-           - Implement `addToCart(id)` and `placeOrder()` with fetch calls.
-           - Implement `switchView(viewName)` to toggle visibility between Home, Shop, and Checkout sections.
-        5. PERSISTENCE: Save/Load the cart to `localStorage`.
-
-
-        --- BACKEND MAPPING ---
-        Ensure all fetch calls strictly use: `${{API_BASE}}/products`, `${{API_BASE}}/cart`, `${{API_BASE}}/checkout`.
-
-        --- OUTPUT ---
-        Return ONLY valid JSON.
-        {{
-          "index.html": "...",
-          "script.js": "...",
-          "styles.css": "..."
-        }}
-        --- OUTPUT FORMAT ---
-        Return ONLY valid JSON.
-        {{
-          "index.html": "...",
-          "script.js": "...",
-          "styles.css": "..."
-        }}
-
-        --- MANDATORY DESIGN UNIQUENESS ---
-        1. Create a unique Header/Footer layout (e.g., side-nav, bottom-dock, or floating).
-        2. Generate a custom Color Palette and Font Pairing in 'styles.css'.
-        3. Use {category}-specific terminology in the UI.
-
-        --- MANDATORY FUNCTIONALITY (JAVASCRIPT) ---
-        The 'script.js' MUST implement these features using 'fetch' to your API:
-        1. CONSTANT: Define `const API_BASE = '/api/{slug}';` at the top.
-        2. LOADING: On page load, fetch `${{API_BASE}}/products` and render them.
-        3. CART: Functions `addToCart(id)` and `removeFromCart(id)` must call the POST/DELETE endpoints.
-        4. WISHLIST: Functions for `POST/DELETE ${{API_BASE}}/wishlist/${{id}}`.
-        5. STATE: Keep a local `cartCount` and update the UI header when items are added.
-        6. ROUTING: Use a simple hidden/show logic or URL params to switch between Home, PLP, and Checkout views.
-
-        --- BACKEND API REFERENCE ---
-        Follow these exact paths:
-        - GET ${{API_BASE}}/products
-        - GET ${{API_BASE}}/product/{{id}}
-        - GET/POST/DELETE ${{API_BASE}}/cart
-        - GET/POST/DELETE ${{API_BASE}}/wishlist
-        - POST ${{API_BASE}}/login
-        - POST ${{API_BASE}}/checkout
-
-        OUTPUT FORMAT:
-        Return ONLY valid JSON.
-        {{
-          "index.html": "...",
-          "script.js": "...",
-          "styles.css": "..."
-        }}
-        
-        REQUIREMENTS FOR EXTREME UNIQUENESS:
-        1. DESIGN SYSTEM: Define an extremely unique color palette and font pairing that deeply fits the '{category}' domain but has a distinct aggressive aesthetic. 
-        2. CUSTOM COMPONENTS: The Header and Footer must be entirely un-orthodox and custom-built for this exact vibe. NO generic Bootstrap/Tailwind standard navbars. Try floating elements, bottom docks, vertical sidebars, or circular radial menus as requested.
-        3. DOMAIN FEATURES: Invent one highly unique UI interaction or feature specific to '{category}' (e.g., if 'Art', an AR preview button; if 'Tech', a terminal-like filter console).
-        4. CSS CRAFTSMANSHIP: Do not rely solely on basic Tailwind utilities. Include advanced CSS styling, custom scrollbars, text selection colors, and clip-paths to break out of the box.
-
-        COVER THESE FLOWS:
-        - Home (with a unique hero section based on {title})
-        - PLP, PDP, Cart, Wishlist, Checkout.
-        
-        Website: {title}
+        Brand: {title}
+        Category: {category}
         Slug: {slug}
-        Website Variable: "website" (used as path param in APIs)
 
-        --- BACKEND MAPPING ---
+        DESIGN:
+        - Theme: {design['style']}
+        - Navigation: {design['nav']}
+        - Layout: {design['layout']}
+        - Hero section: {hero}
+        - Typography: {typography}
+        - Micro-interactions: {interaction}
+        - Color direction: {chosen_color_direction} (generate 5 CSS variables)
+
+        CRITICAL:
+        - Every function must be implemented exactly as described.
+        - The website must work without errors.
+        - Use the API responses for all data – DO NOT hardcode products or images.
+        - Escape double quotes inside strings with backslash.
+        - No trailing commas.
+
+        **IMAGE HANDLING (STRICT):**
+        - When rendering products, ALWAYS use `product.image_url` from the API response.
+        - DO NOT hardcode any image URLs (e.g., no Unsplash, no Picsum, no placeholders).
+        - If `product.image_url` is empty or null, display a fallback grey box with text "No Image".
+        - Add `onerror="this.src='https://placehold.co/400x500?text=No+Image'"` to every `<img>` tag.
+        - In JavaScript, when mapping products, ensure `image_url` is used exactly as returned. 
+
+        REQUIRED FUNCTIONALITY (ALL MUST WORK):
+        1. localStorage: save/load cart and wishlist
+        2. All views: home, shop, product detail(PDP), profile, cart, wishlist, checkout, login/register modal
+        3. Use Tailwind CSS CDN + custom CSS for unique styling
         
+        **PRODUCT DETAIL PAGE (PDP) – MUST IMPLEMENT:**
+        - When a product card is clicked (anywhere on the card), call `viewProduct(id)`.
+        - `viewProduct(id)` should:
+        - Fetch product from `GET ${{API_BASE}}/product/${{id}}`
+        - Store the result in `state.currentProduct`
+        - Set `state.view = 'product'`
+        - Call `render()`
+        - The PDP view must show:
+        - Large product image (using `image_url` with fallback)
+        - Product title, price (special_price and MRP strikethrough)
+        - Stock status (if available)
+        - Quantity selector (1–10)
+        - "Add to Cart" button that calls `addToCart(id, quantity)`
+        - "Add to Wishlist" button
+        - "Back to Shop" link that switches to `view='shop'`
+        - The same PDP should be reachable via direct URL (hash or query param) 
+        - implement `window.onpopstate` or simple URL hash routing.
+                
+        --- BACKEND API REFERENCE ---
         1. Products:
         GET    /api/{{website}}/products
         Response: {{
@@ -361,20 +337,34 @@ class WebsiteGenerator:
         """
 
         response = self.generate_code(prompt)
-
         if not response:
-            print("EMPTY AI RESPONSE")
-            return {"files": {}}
-
+            return {"files": {}, "success": False}
+        
         cleaned = self.extract_json(response)
-
+        parsed = None
+        
+        # Attempt 1: Normal JSON parse
         try:
             parsed = json.loads(cleaned)
-            return {"files": parsed}
-        except Exception as e:
-            print("JSON ERROR:", e)
-            print("RAW:", response)
-            return {"files": {}}
+        except json.JSONDecodeError:
+            print("JSON parse failed, using regex fallback...")
+            # Attempt 2: Regex extraction
+            files = {}
+            for key in ["index.html", "script.js", "styles.css"]:
+                pattern = rf'"{key}":\s*"((?:[^"\\]|\\.)*)"'
+                match = re.search(pattern, response, re.DOTALL)
+                if match:
+                    content = match.group(1).replace('\\"', '"').replace('\\n', '\n')
+                    files[key] = content
+            if len(files) == 3:
+                parsed = files
         
+        if parsed and all(k in parsed for k in ["index.html", "script.js", "styles.css"]):
+            saved = self.save_website_files(parsed, slug)
+            return {"files": parsed, "success": True, "saved_files": saved, "slug": slug}
+        else:
+            print("Could not extract valid files from AI response")
+            print("Response preview:", response[:300])
+            return {"files": {}, "success": False}
 
 ai_generator = WebsiteGenerator()

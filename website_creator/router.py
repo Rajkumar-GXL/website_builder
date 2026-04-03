@@ -78,7 +78,7 @@ def create_website(request: CreateWebsiteRequest, master_db=Depends(get_master_d
     )
 
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    sites_dir = os.path.join(base_dir, "generated_sites", slug)
+    sites_dir = os.path.join(base_dir, "sites", slug)
 
     os.makedirs(sites_dir, exist_ok=True)
 
