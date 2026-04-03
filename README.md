@@ -6,7 +6,7 @@ STEP2: Create Virtual Environment
 
     command: python -m venv venv
 
-   command to activate virtual Environment: ./venv/Scripts/activate
+    command to activate virtual Environment: ./venv/Scripts/activate
 
 STEP3: Install Dependencies
       command: pip install -r requirements.txt

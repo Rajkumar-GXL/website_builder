@@ -78,13 +78,13 @@ def seed_tenant_data(tenant_db: str, subcategory_id: int):
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# Function to create the users tables
 def create_users_table(tenant_db: str, default_admin: dict = None):
     """
     Create 'users' table for a tenant and optionally add a default admin user.
     """
     engine = get_tenant_engine(tenant_db)
     with engine.connect() as conn:
-        # SQLAlchemy will create the table via Base.metadata.create_all()
         # Optional: keep manual create for safety
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS users (
@@ -113,6 +113,7 @@ def create_users_table(tenant_db: str, default_admin: dict = None):
                 print(f"Admin creation skipped: {e}")
 
 
+# Function to create the tenant websites.
 def create_tenant_website(tenant_db: str, default_admin: dict = None):
     """
     Creates the tenant database tables including products and users.

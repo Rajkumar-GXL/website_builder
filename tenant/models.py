@@ -4,9 +4,9 @@ from sqlalchemy.orm import DeclarativeBase
 from datetime import datetime
 from sqlalchemy import UniqueConstraint
 
+# Class to declare the base model.
 class Base(DeclarativeBase):
     pass
-
 
 # Class to represent the product which is present in the tenant db
 class User(Base):
@@ -18,7 +18,7 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-
+# Class to declare the product base model shcema
 class Product(Base):
     __tablename__ = "products"
     id = Column(Integer, primary_key=True)
@@ -57,7 +57,7 @@ class Cart(Base):
     quantity = Column(Integer, default=1)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-
+# Function to create the orders tables based on the shcema.
 class Order(Base):
     __tablename__ = "orders"
 
@@ -70,6 +70,7 @@ class Order(Base):
     status = Column(String(50), default="confirmed")
     created_at = Column(DateTime, default=datetime.utcnow)
 
+# Function to create the table for the order items.
 class OrderItem(Base):
     __tablename__ = "order_items"
 

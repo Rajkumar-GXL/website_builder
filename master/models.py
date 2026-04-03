@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import DeclarativeBase
 from datetime import datetime
 
+# Class to declare the base model.
 class MasterBase(DeclarativeBase):
     pass
 

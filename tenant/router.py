@@ -5,6 +5,7 @@ from pydantic import BaseModel, EmailStr, Field
 from fastapi import APIRouter, Depends, HTTPException, Path, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel, EmailStr
 from sqlalchemy import text
 from core.database import get_tenant_db, get_master_db
 
@@ -12,9 +13,11 @@ from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# Function to normalize the password
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
+# Function to verify the passwords.
 def verify_password(password: str, hashed: str) -> bool:
     return pwd_context.verify(password, hashed)
 
@@ -37,8 +40,6 @@ async def resolve_tenant(website: str, master_db=Depends(get_master_db)):
         yield db
     finally:
         db.close()
-
-
 
 # Function to get the homepage of the website which is present in the tenant db
 @router.get("/{website}/", response_class=HTMLResponse)
@@ -88,7 +89,6 @@ async def tenant_home(request: Request, website: str, db=Depends(resolve_tenant)
         "products": products # DB Product Data
     })
 
-
 # Fetch all products for a tenant.
 @router.get("/{website}/products")
 async def get_all_products(
@@ -137,8 +137,6 @@ async def get_all_products(
             "success": False,
             "error": str(e)
         }
-
-
 
 
 # Function to get the product details which is present in the tenant db
@@ -199,7 +197,7 @@ async def add_to_wishlist(website: str = Path(...), product_id: int = Path(...),
             ON DUPLICATE KEY UPDATE created_at = NOW()
         """), {"pid": product_id})
         db.commit()
-        return {"success": True, "message": f"Added '{product_id}' to wishlist ✅"}
+        return {"success": True, "message": f"Added '{product_id}' to wishlist"}
     except Exception as e:
         return {"error": str(e)}
 
@@ -235,7 +233,6 @@ async def get_wishlist(website: str = Path(...), db=Depends(resolve_tenant)):
         }
     except Exception as e:
         return {"wishlist": [], "total_items": 0, "error": str(e)}
-
 
 # Function to remove the product from the wishlist which is present in the tenant db
 @router.delete("/{website}/wishlist/{product_id}")
@@ -306,6 +303,7 @@ async def add_to_cart(website: str = Path(...), product_id: int = Path(...), db=
     except Exception as e:
         return {"error": str(e)}
 
+# Function to get the cart details from the server.
 @router.get("/{website}/cart")
 async def get_cart(website: str = Path(...), db=Depends(resolve_tenant)):
     try:
@@ -451,7 +449,7 @@ async def process_checkout(website: str = Path(...), db=Depends(resolve_tenant))
         db.rollback()
         return {"error": str(e)}
     
-from pydantic import BaseModel, EmailStr
+
 
 class RegisterRequest(BaseModel):
     name: str

@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     mysql_user: str = "root" 
     mysql_password: str = "" 
 
+    # Function to get the master db access
     @property 
     def master_db_url(self) -> str: 
         if self.mysql_password:
@@ -17,6 +18,7 @@ class Settings(BaseSettings):
         else:
             return f"mysql+pymysql://{self.mysql_user}@{self.mysql_host}:{self.mysql_port}/websites"
     
+    # Function to normalize the url
     @property 
     def mysql_root_url(self) -> str: 
         if self.mysql_password:
