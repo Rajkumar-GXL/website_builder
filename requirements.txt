@@ -7,8 +7,11 @@ pydantic==2.6.4
 pydantic-settings==2.2.1
 python-dotenv==1.0.1
 jinja2==3.1.2
-google-generativeai
+# google-generativeai
+google-genai
 openai==2.20.0
 passlib
 pydantic[email]
 bcrypt===3.2.0
+playwright==1.50.0
+# playwright install
