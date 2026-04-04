@@ -3,3 +3,5 @@ venv/
 __pycache__/
 *.pyc
 sites/
+auto_fixer.py
+# website_analyzer.py

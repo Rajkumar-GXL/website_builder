@@ -218,7 +218,8 @@ class WebsiteGenerator:
         
         1. **PRODUCTS**  
         - Use the API response from `${{API_BASE}}/products`. 
-        - Provide at least 8 mock products with realistic titles, prices, and images.
+        - Do NOT create mock products manually.
+        - Always fetch products from API and render dynamically.
           Product mapping:  
           - product.id → use as unique identifier
           - product.title → display title

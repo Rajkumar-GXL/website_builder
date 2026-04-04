@@ -360,4 +360,4 @@ async def analyze_site(site_folder_path):
     return issues_list
 
 if __name__ == "__main__":
-    asyncio.run(analyze_site("sites/website_bio_books"))
+    asyncio.run(analyze_site("sites/website_smartwatch"))
