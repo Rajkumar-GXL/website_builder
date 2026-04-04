@@ -134,11 +134,6 @@ class WebsiteGenerator:
             "Hover underline for links, zoom on product images"
         ]
 
-        design = random.choice(design_systems)
-        hero = random.choice(hero_styles)
-        typography = random.choice(typography_styles)
-        interaction = random.choice(interaction_styles)
-
         color_directions = [
             "Neutral & Minimal (warm off-white, soft gray, charcoal, subtle beige, pure white) – clean and elegant",
             "Professional Blue (navy, slate, steel blue, light blue, white) – trustworthy, corporate",
@@ -151,9 +146,13 @@ class WebsiteGenerator:
             "Earthy Olive (olive green, tan, off-white, dark brown, warm gray) – outdoor, organic",
             "Clean White & Slate (white, slate, light gray, dark gray, subtle blue accent) – SaaS, modern retail"
         ]
+
+        design = random.choice(design_systems)
+        hero = random.choice(hero_styles)
+        typography = random.choice(typography_styles)
+        interaction = random.choice(interaction_styles)
         chosen_color_direction = random.choice(color_directions)
 
-        
         prompt = f"""
         Build a COMPLETE, WORKING e-commerce website. Use the following exact specifications.        
         
@@ -170,33 +169,47 @@ class WebsiteGenerator:
         - Micro-interactions: {interaction}
         - Color direction: {chosen_color_direction} (generate 5 CSS variables)
 
-        CRITICAL:
-        - Every function must be implemented exactly as described.
-        - The website must work without errors.
-        - Use the API responses for all data – DO NOT hardcode products or images.
-        - Escape double quotes inside strings with backslash.
-        - No trailing commas.
+        **FOOTER REQUIREMENTS (MUST INCLUDE):**
+        - Create a `<footer>` element at the bottom of every page.
+        - The footer must be visually consistent with the overall design (use the same color scheme).
+        - Include:
+            * Brand name: "{title}"
+            * Tagline related to the category "{category}" (e.g., "Best {category} deals").
+            * Useful links: Home, Shop, About Us, Contact, Privacy Policy, Terms of Service.
+            * Social media icons (use Font Awesome CDN or simple text links).
+            * Copyright notice with current year (auto-updating using JavaScript).
+        - The footer should be responsive (stack on mobile).
+        - Do not hardcode placeholder text – use the actual brand and category.
+        - Use `<hr>` or border-top to separate from main content.
+        
+        CRITICAL RULES (MUST FOLLOW):
+        1. Every function must be implemented exactly as described.
+        2. The website must work without errors – no undefined variables, no missing event listeners.
+        3. Use the API responses for all data – DO NOT hardcode products or images.
+        4. Escape double quotes inside strings with backslash.
+        5. No trailing commas in JSON.
+        6. All JavaScript must be self-contained and initialised after DOMContentLoaded.
+        7. The `slug` must be used to construct all API URLs: const API_BASE = `/api/{slug}`;
 
         **IMAGE HANDLING (STRICT):**
-        - When rendering products, ALWAYS use `product.image_url` from the API response.
-        - DO NOT hardcode any image URLs (e.g., no Unsplash, no Picsum, no placeholders).
-        - If `product.image_url` is empty or null, display a fallback grey box with text "No Image".
+        - Always use `product.image_url` from the API response.
+        - If `image_url` is empty/null, display a fallback grey box with "No Image".
         - Add `onerror="this.src='https://placehold.co/400x500?text=No+Image'"` to every `<img>` tag.
-        - In JavaScript, when mapping products, ensure `image_url` is used exactly as returned. 
-
-        REQUIRED FUNCTIONALITY (ALL MUST WORK):
-        1. localStorage: save/load cart and wishlist
-        2. All views: home, shop, product detail(PDP), profile, cart, wishlist, checkout, login/register modal
-        3. Use Tailwind CSS CDN + custom CSS for unique styling
+        - In JavaScript, map products ensuring `image_url` is used exactly as returned.
+        
+        **REQUIRED FUNCTIONALITY (ALL MUST WORK):**
+        1. localStorage: save/load cart and wishlist (as backup, but primary data comes from backend APIs).
+        2. All views: home, shop, product detail (PDP), profile, cart, wishlist, checkout, login/register modal.
+        3. Use Tailwind CSS CDN + custom CSS for unique styling.
         
         **PRODUCT DETAIL PAGE (PDP) – MUST IMPLEMENT:**
         - When a product card is clicked (anywhere on the card), call `viewProduct(id)`.
-        - `viewProduct(id)` should:
+        - `viewProduct(id)` must:
         - Fetch product from `GET ${{API_BASE}}/product/${{id}}`
-        - Store the result in `state.currentProduct`
+        - Store result in `state.currentProduct`
         - Set `state.view = 'product'`
         - Call `render()`
-        - The PDP view must show:
+        - PDP must show:
         - Large product image (using `image_url` with fallback)
         - Product title, price (special_price and MRP strikethrough)
         - Stock status (if available)
@@ -204,9 +217,8 @@ class WebsiteGenerator:
         - "Add to Cart" button that calls `addToCart(id, quantity)`
         - "Add to Wishlist" button
         - "Back to Shop" link that switches to `view='shop'`
-        - The same PDP should be reachable via direct URL (hash or query param) 
-        - implement `window.onpopstate` or simple URL hash routing.
-                
+        - Implement URL hash routing (e.g., `#product/123`) so PDP is directly reachable.
+        
         --- BACKEND API REFERENCE ---
         1. Products:
         GET    /api/{{website}}/products
@@ -324,7 +336,35 @@ class WebsiteGenerator:
             "message": "Login successful"
         }}
 
+        **JAVASCRIPT STRUCTURE (TEMPLATE TO FOLLOW):**
+        ```javascript
+        // state
+        let state = {{ view: 'shop', products: [], cart: [], wishlist: [], currentProduct: null, user: null }};
 
+        // DOM elements cache
+        let app;
+
+        // helper functions
+        function setView(view) {{ ... }}
+        function render() {{ ... }}
+        async function loadProducts() {{ ... }}
+        async function loadCart() {{ ... }}
+        async function loadWishlist() {{ ... }}
+        async function addToCart(productId, quantity) {{ ... }}
+        async function addToWishlist(productId) {{ ... }}
+        async function viewProduct(productId) {{ ... }}
+        function updateCartUI() {{ ... }}
+
+        // initialisation
+        document.addEventListener('DOMContentLoaded', () => {{
+        app = document.getElementById('app');
+        loadProducts();
+        loadCart();
+        loadWishlist();
+        // set up routing
+        window.addEventListener('hashchange', handleRouting);
+        handleRouting();
+        }});
         --- OUTPUT RULES ---
         - Include custom CSS keyframe animations for page transitions.
         - Use Tailwind CSS via CDN in the HTML header for responsiveness.
