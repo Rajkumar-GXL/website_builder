@@ -7,9 +7,12 @@ from core.database import ROOT_ENGINE, master_engine
 from website_creator.router import router as builder_router
 from tenant.router import router as tenant_router
 from master.models import MasterBase
-import os
+import os, asyncio, sys
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy()) 
 
 templates = Jinja2Templates(directory="templates")
 

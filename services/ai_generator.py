@@ -58,14 +58,17 @@ class WebsiteGenerator:
             return "{}"
     
     # Function to generate website application.
-    def generate_code(self, prompt: str) -> str:
+    def generate_code(self, prompt: str, is_json: bool = True):
         for attempt in range(2):
             try:
-                config = types.GenerateContentConfig(
-                    temperature=0.85,
-                    top_p=0.95,
-                    response_mime_type="application/json"
-                )
+                config_kwargs = {
+                    "temperature": 0.85,
+                    "top_p": 0.95,
+                }
+                if is_json:
+                    config_kwargs["response_mime_type"] = "application/json"
+                
+                config = types.GenerateContentConfig(**config_kwargs)
                 if self.cache_name:
                     config.cached_content = self.cache_name
 
@@ -249,6 +252,7 @@ class WebsiteGenerator:
         5. **FOOTER (MANDATORY)**     
         - Create a `<footer>` element at the bottom of every page.
         - The footer must be visually consistent with the overall design (use the same color scheme).
+        - Font Should be professional and readable.
         - Include:
             * Brand name: "{title}"
             * Tagline related to the category "{category}" (e.g., "Best {category} deals").
